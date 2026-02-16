@@ -278,7 +278,7 @@ class LogAnalyzer extends HTMLElement {
   }
 
   async _fetchAnalysis(log) {
-    const response = await fetch('http://localhost:3000/analyze-log', {
+    const response = await fetch('/analyze-log', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
