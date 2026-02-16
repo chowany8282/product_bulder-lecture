@@ -136,7 +136,7 @@ class LogAnalyzer extends HTMLElement {
   }
 
   _onInput() {
-    this._logs = this._logInput.value.split('\\n').filter(line => line.trim() !== '');
+    this._logs = this._logInput.value.split('\n').filter(line => line.trim() !== '');
     this._debouncedFilter();
   }
   
