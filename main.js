@@ -278,7 +278,8 @@ class LogAnalyzer extends HTMLElement {
   }
 
   async _fetchAnalysis(log) {
-    const response = await fetch('/analyze-log', {
+    const apiBaseUrl = window.GEMINI_API_URL || 'http://localhost:3000';
+    const response = await fetch(`${apiBaseUrl}/analyze-log`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -287,8 +288,19 @@ class LogAnalyzer extends HTMLElement {
     });
 
     if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to fetch analysis.');
+        // Try to parse the error as JSON, but fall back to text if that fails
+        const errorText = await response.text();
+        let errorMessage = 'Failed to fetch analysis.';
+        try {
+            const errorData = JSON.parse(errorText);
+            errorMessage = errorData.error || errorMessage;
+        } catch (e) {
+            // The error response was not valid JSON
+            console.error("Could not parse error response as JSON:", errorText);
+            // We can use the raw text as a fallback
+            errorMessage = `Server returned an error: ${response.status} ${response.statusText}. Response: ${errorText}`;
+        }
+        throw new Error(errorMessage);
     }
 
     const data = await response.json();
