@@ -103,7 +103,7 @@ class LogAnalyzer extends HTMLElement {
     if (!target) return;
     
     // Highlight selected
-    this.shadowRoot.querySelectorAll('.log-line.selected').forEach(el => el.classList.remove('selected'));
+    this.querySelectorAll('.log-line.selected').forEach(el => el.classList.remove('selected'));
     target.classList.add('selected');
 
     const logMessage = target.textContent;
