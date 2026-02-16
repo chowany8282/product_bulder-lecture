@@ -1,212 +1,53 @@
 class LogAnalyzer extends HTMLElement {
   constructor() {
     super();
-    this.attachShadow({ mode: 'open' });
-
     this._logs = [];
     this._debouncedFilter = this.debounce(this._filterAndRender, 200);
   }
 
   connectedCallback() {
-    this.shadowRoot.innerHTML = `
-      <style>
-        :host {
-          --background-color: #1a1a1a;
-          --text-color: #e0e0e0;
-          --header-bg: #2c3e50;
-          --header-color: #ecf0f1;
-          --input-bg: #2c3e50;
-          --input-border: #34495e;
-          --results-bg: #1c1c1c;
-          --highlight-bg: #f39c12;
-          --highlight-color: #1c1c1c;
-          --scrollbar-bg: #2c3e50;
-          --scrollbar-thumb: #34495e;
-          --stats-color: #95a5a6;
-          --pane-bg: #22272e;
-        }
-
-        .log-analyzer-container {
-            display: flex;
-            gap: 1rem;
-        }
-
-        .log-analyzer-wrapper {
-          display: grid;
-          grid-template-rows: auto 1fr;
-          height: calc(100vh - 120px);
-          gap: 1rem;
-          flex-grow: 1;
-        }
-
-        .controls {
-          display: flex;
-          flex-direction: column;
-          gap: 1rem;
-        }
-
-        .search-bar, .log-input {
-          width: 100%;
-          background-color: var(--input-bg);
-          color: var(--text-color);
-          border: 1px solid var(--input-border);
-          border-radius: 5px;
-          padding: 0.75rem;
-          font-family: 'Menlo', 'Consolas', 'Monaco', monospace;
-          font-size: 1rem;
-          box-sizing: border-box;
-          transition: border-color 0.2s, box-shadow 0.2s;
-        }
-        
-        .search-bar:focus, .log-input:focus {
-          outline: none;
-          border-color: var(--highlight-bg);
-          box-shadow: 0 0 5px rgba(243, 156, 18, 0.5);
-        }
-
-        .log-input {
-          resize: vertical;
-          min-height: 150px;
-        }
-
-        .stats {
-          font-size: 0.9rem;
-          color: var(--stats-color);
-          text-align: right;
-          padding: 0 0.5rem;
-        }
-
-        .results {
-          background-color: var(--results-bg);
-          border: 1px solid var(--input-border);
-          border-radius: 5px;
-          overflow-y: auto;
-          padding: 0.5rem;
-          height: 100%;
-        }
-
-        .log-line {
-          padding: 0.25rem 0.5rem;
-          white-space: pre-wrap;
-          word-break: break-all;
-          font-size: 0.85rem;
-          line-height: 1.6;
-          cursor: pointer;
-          border-radius: 3px;
-        }
-
-        .log-line:hover {
-            background-color: rgba(255, 255, 255, 0.1);
-        }
-
-        .log-line.selected {
-            background-color: var(--input-bg);
-        }
-
-        .log-line:nth-child(even) {
-          background-color: rgba(0,0,0,0.2);
-        }
-
-        .log-line mark {
-          background-color: var(--highlight-bg);
-          color: var(--highlight-color);
-          border-radius: 3px;
-          padding: 0.1em;
-        }
-
-        .details-pane {
-            flex-basis: 40%;
-            flex-grow: 0;
-            flex-shrink: 0;
-            background-color: var(--pane-bg);
-            border-radius: 5px;
-            border: 1px solid var(--input-border);
-            height: calc(100vh - 120px);
-            display: flex;
-            flex-direction: column;
-            transition: all 0.3s ease;
-        }
-
-        .details-pane.hidden {
-            display: none;
-        }
-
-        .details-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0.75rem;
-            background-color: var(--input-bg);
-            border-bottom: 1px solid var(--input-border);
-        }
-        .details-header h3 {
-            margin: 0;
-            font-size: 1rem;
-        }
-        .close-btn {
-            background: none;
-            border: none;
-            color: var(--text-color);
-            font-size: 1.5rem;
-            cursor: pointer;
-        }
-
-        .details-content {
-            padding: 1rem;
-            overflow-y: auto;
-            white-space: pre-wrap;
-            line-height: 1.6;
-        }
-        
-        .loading {
-            text-align: center;
-            padding: 2rem;
-            color: var(--stats-color);
-        }
-
-        ::-webkit-scrollbar {
-          width: 10px;
-        }
-
-        ::-webkit-scrollbar-track {
-          background: var(--scrollbar-track);
-        }
-
-        ::-webkit-scrollbar-thumb {
-          background: var(--scrollbar-thumb);
-          border-radius: 5px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-          background: #555;
-        }
-      </style>
+    this.innerHTML = `
       <div class="log-analyzer-container">
         <div class="log-analyzer-wrapper">
           <div class="controls">
-              <textarea class="log-input" placeholder="Paste Cisco logs here..."></textarea>
-              <input type="search" class="search-bar" placeholder="Search logs...">
-              <div class="stats"></div>
+            <div class="input-group">
+              <label for="log-input">Log Data</label>
+              <textarea id="log-input" class="log-input" placeholder="Paste Cisco logs here..."></textarea>
+            </div>
+            <div class="input-group">
+              <label for="search-bar">Search</label>
+              <div class="search-wrapper">
+                <input type="search" id="search-bar" class="search-bar" placeholder="Filter logs...">
+                <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+              </div>
+            </div>
+            <div class="stats"></div>
           </div>
-          <div class="results"></div>
+          <div class="results-wrapper">
+            <div class="results-header">Results</div>
+            <div class="results"></div>
+          </div>
         </div>
         <div class="details-pane hidden">
-            <div class="details-header">
-                <h3>Log Analysis</h3>
-                <button class="close-btn">&times;</button>
-            </div>
-            <div class="details-content"></div>
+          <div class="details-header">
+            <h3>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 15c-.55 0-1-.45-1-1v-4c0-.55.45-1 1-1s1 .45 1 1v4c0 .55-.45 1-1 1zm1-8h-2V7h2v2z"/></svg>
+              Log Analysis
+            </h3>
+            <button class="close-btn">&times;</button>
+          </div>
+          <div class="details-content"></div>
         </div>
       </div>
     `;
 
-    this._logInput = this.shadowRoot.querySelector('.log-input');
-    this._searchInput = this.shadowRoot.querySelector('.search-bar');
-    this._resultsContainer = this.shadowRoot.querySelector('.results');
-    this._statsContainer = this.shadowRoot.querySelector('.stats');
-    this._detailsPane = this.shadowRoot.querySelector('.details-pane');
-    this._detailsContent = this.shadowRoot.querySelector('.details-content');
-    this._closeDetailsBtn = this.shadowRoot.querySelector('.close-btn');
+    this._logInput = this.querySelector('.log-input');
+    this._searchInput = this.querySelector('.search-bar');
+    this._resultsContainer = this.querySelector('.results');
+    this._statsContainer = this.querySelector('.stats');
+    this._detailsPane = this.querySelector('.details-pane');
+    this._detailsContent = this.querySelector('.details-content');
+    this._closeDetailsBtn = this.querySelector('.close-btn');
     
     this._logInput.addEventListener('input', this._onInput.bind(this));
     this._searchInput.addEventListener('input', this._onInput.bind(this));
