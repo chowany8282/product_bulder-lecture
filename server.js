@@ -3,6 +3,16 @@ const express = require('express');
 const cors = require('cors');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
+// --- API Key Check ---
+const apiKey = process.env.GEMINI_API_KEY;
+if (!apiKey) {
+  console.error("\nFATAL ERROR: Gemini API Key not found.");
+  console.error("Please make sure you have a file named '.env' in the project root.");
+  console.error("The .env file should contain one line: GEMINI_API_KEY=your_actual_api_key\n");
+  process.exit(1); // Stop the server from starting
+}
+// ---------------------
+
 const app = express();
 const port = 3000;
 
@@ -10,7 +20,7 @@ app.use(cors());
 app.use(express.json());
 
 // Initialize Gemini
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const genAI = new GoogleGenerativeAI(apiKey);
 
 app.post('/analyze-log', async (req, res) => {
   const { log } = req.body;
